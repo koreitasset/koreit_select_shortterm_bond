@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>코레이트 셀렉트단기채 증권투자신탁[채권]</title>
+
+<!-- 카카오 / 메신저 미리보기용 -->
+<meta property="og:title" content="코레이트셀렉트단기채 증권투자신탁[채권]">
+<meta property="og:description" content="탄탄한 기준을 딛고, 한 걸음씩 내일로!">
+<meta property="og:image" content="https://koreitasset.github.io/koreit_select_shortterm_bond/01.PNG">
+<meta property="og:url" content="https://koreitasset.github.io/koreit_select_shortterm_bond/">
+<meta property="og:type" content="website">
+
+<style>
+body {
+  margin: 0;
+  background: #111;
+  display: flex;
+  justify-content: center;
+  font-family: sans-serif;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 800px;
+}
+
+#pages canvas,
+#pages img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #fff;
+}
+
+.download {
+  display: block;
+  margin: 16px;
+  padding: 14px;
+  text-align: center;
+  color: #fff;
+  background: #1f3a68;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+  <div id="pages"></div>
+  <a class="download" href="leaflet.pdf" target="_blank">PDF 원본 보기 / 다운로드</a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+var PDF_FILE = 'leaflet.pdf';
+var FALLBACK_IMAGES = ['01.PNG', '02.PNG'];
+var box = document.getElementById('pages');
+
+function showImages() {
+  box.innerHTML = '';
+  FALLBACK_IMAGES.forEach(function (src, i) {
+    var img = document.createElement('img');
+    img.src = src;
+    img.alt = '리플렛 ' + (i + 1);
+    box.appendChild(img);
+  });
+}
+
+if (!window.pdfjsLib) {
+  showImages();
+} else {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  pdfjsLib.getDocument(PDF_FILE).promise.then(function (pdf) {
+    // 화면 폭 x 기기 해상도 x 2배 → 확대해도 선명하게
+    var targetWidth = Math.min(box.clientWidth || 800, 800) * (window.devicePixelRatio || 1) * 2;
+    var chain = Promise.resolve();
+    for (var n = 1; n <= pdf.numPages; n++) {
+      (function (num) {
+        var canvas = document.createElement('canvas');
+        box.appendChild(canvas);
+        chain = chain.then(function () {
+          return pdf.getPage(num).then(function (page) {
+            var base = page.getViewport({ scale: 1 });
+            var scale = Math.min(targetWidth / base.width, 4);
+            var viewport = page.getViewport({ scale: scale });
+            canvas.width = Math.floor(viewport.width);
+            canvas.height = Math.floor(viewport.height);
+            return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+          });
+        });
+      })(n);
+    }
+    return chain;
+  }).catch(function () {
+    showImages();
+  });
+}
+</script>
+
+</body>
+</html>
